@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <title>Finstagram</title>
+    </head>
+    <body>
+        <h1>Image Gallery</h1>
+        <div>
+        </div>
+        {% if posts %}
+         {% for post in posts %}
+         <div>
+            <p>Posted By <b>{{post.firstName}} {{post.lastName}} - {{post.photoPoster}}</b></p>
+            <small class=text-muted> Photo ID: {{post.photoID}}</small> <br>
+            <small class=text-muted> Posted On {{post.postingdate}}</small> <br>
+            <img src="static/images/{{post.filepath}}"> <br>
+            <p> {{post.caption}} </p>
+            <button onclick="location.href='{{ url_for('tag', id=post.photoID)}}'" type="button">Tag User</button>
+            <br>
+            <p>Tagged Users:
+            {% if post.tagees %}
+              {% for tagged in post.tagees %}
+                {% if loop.last %}
+                <p>{{tagged.firstName}} {{tagged.lastName}} - {{tagged.username}}</p>
+                {% else %}
+                <p>{{tagged.firstName}} {{tagged.lastName}} - {{tagged.username}},</p>
+                {% endif %}
+              {% endfor %}
+            {% else %}
+             <p> None</p>
+            {% endif %}
+            </p>
+        </div>
+        {% endfor %}
+        {% else %}
+            <p>No photos to display</p>
+        {% endif %}
+        <p>_______________________________________________________</p>
+
+        <a href="/">Go back</a>
+    </body>
+</html>

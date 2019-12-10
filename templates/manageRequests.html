@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Manage Follow Requests</title>
+</head>
+<body>
+	{% if followers %}
+		<select name="followRequests" multiple>
+            {% for request in followers %}
+            <option value="{{request.username_follower}}">{{request.username_follower}}</option>
+            {% endfor %}
+	        </select>
+	        <br>
+	        <input type="submit" name = "accept", value="Accept Request">
+            <input type = "submit" name = "decline", value="Decline Request">
+	{% else %}
+	<p>You have no follow requests</p>
+	{% endif %}
+    <br>
+    <a href="/">Go back</a>
+
+</body>
+</html>
