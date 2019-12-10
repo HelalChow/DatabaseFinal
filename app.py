@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect, url_for, send_file
+from flask import Flask, render_template, request, session, redirect, url_for, send_file, flash
 from PIL import Image
 
 import os
@@ -254,14 +254,52 @@ def follow():
 def manageRequests():
     # get all the requests that have followstatus = 0 for the current user
     cursor = connection.cursor()
-    query = "SELECT username_follower FROM follow WHERE username_followed = %s"
+    query = "SELECT username_follower FROM follow WHERE username_followed = %s AND followstatus = 0"
     cursor.execute(query, (session["username"]))
     data = cursor.fetchall()
     if request.form:
-        pass
+        chosenUsers = request.form.getlist("chooseUsers")
+        for user in chosenUsers:
+            if request.form['action'] ==  "Accept":
+                query = "UPDATE follow SET followstatus = 1 WHERE username_followed=%s\
+                AND username_follower = %s"
+                cursor.execute(query, (session['username'], user))
+                connection.commit()
+                flash("The selected friend requests have been accepted!")
+            elif request.form['action'] == "Decline":
+                query = "DELETE FROM follow WHERE username_followed = %s\
+                AND username_follower = %s"
+                cursor.execute(query, (session['username'], user))
+                connection.commit()
+                flash("The selected friend requests have been deleted")
+        return redirect(url_for("manageRequests"))
         # handle form goes here
     cursor.close()
     return render_template("manageRequests.html", followers = data)
+
+@app.route("/createFriendGroup", methods=["GET", "POST"])
+@login_required
+def createFriendGroup():
+    if request.form:
+        groupName = request.form["groupName"]
+        description = request.form["description"]
+        cursor = connection.cursor()
+        # check to make sure the group Name doesn't already exist for the user
+        query = "SELECT * FROM friendGroup WHERE groupOwner = %s\
+        AND groupName = %s"
+        cursor.execute(query, (session["username"], groupName))
+        data = cursor.fetchone()
+        if data: # bad, return error message
+            error = f"You already have a friend group called {groupName}"
+            return render_template("createFriendGroup.html", message = error)
+        else: # good, add group into database
+            query = "INSERT INTO friendGroup VALUES(%s,%s,%s)"
+            cursor.execute(query, (session['username'], groupName, description))
+            connection.commit()
+            flash(f"Successfully created the {groupName} friend group")
+            return redirect(url_for("createFriendGroup"))
+
+    return render_template("createFriendGroup.html")
 
 
 
