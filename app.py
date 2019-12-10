@@ -74,6 +74,45 @@ def images():
     cursor.close()
     return render_template('images.html', posts=data)
 
+# CODE FOR LIKE PHOTO
+@app.route("/likeImage", methods=["POST"])
+@login_required
+def like_image():
+    username = session["username"]
+    query = "INSERT IGNORE INTO Likes (username, photoID, liketime) values (%s, %s, %s)"
+    pID = request.form["photoID"]
+    # print(pID) -- making sure jquery is sending correct value
+    with connection.cursor() as cursor:
+        cursor.execute(query,(username, pID, time.strftime('%Y-%m-%d %H:%M:%S')))
+    return render_template("images.html")
+
+
+
+# CODE FOR SEARCH BY POSTER
+@app.route("/searchPoster", methods=["GET"])
+def searchPoster():
+    return render_template("searchPoster.html")
+
+
+# CODE FOR SEARCH BY POSTER
+@app.route("/searchAuth", methods=["POST"])
+def searchAuth():
+    if request.form:
+        requestData = request.form
+        username = requestData["username"]
+
+        with connection.cursor() as cursor:
+            query = "SELECT * FROM Photo WHERE photoPoster = %s"
+            cursor.execute(query, username)
+        data = cursor.fetchall()
+        if data:
+            session["username"] = username
+            return render_template("images.html", username=username, posts=data)
+        error = username + " does not have any posts."
+        return render_template("searchPoster.html", error=error)
+    error = "An unknown error has occurred. Please try again."
+    return render_template("searchPoster.html", error=error)
+
 
 
 @app.route("/tag", methods=["GET", "POST"])
