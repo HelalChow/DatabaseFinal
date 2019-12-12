@@ -87,13 +87,27 @@
             {% else %}
              <p> None</p>
             {% endif %}
+             <p>Liked By:
+            {% if post.likers %}
+                {% for liker in post.likers %}
+                    {% if loop.last %}
+                    {{liker.username}} rating: {{liker.rating}}
+                    {% else %}
+                    {{liker.username}} rating: {{liker.rating}},
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+            None
+            {% endif %}
             </p>
+            </p>
+             <p>_______________________________________________________</p>
         </div>
         {% endfor %}
         {% else %}
             <p>No photos to display</p>
         {% endif %}
-        <p>_______________________________________________________</p>
+
 
         <a href="/">Go back</a>
     </body>

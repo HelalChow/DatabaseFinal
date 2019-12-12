@@ -71,6 +71,12 @@ def images():
         post['firstName'] = ownerInfo['firstName']
         post['lastName'] = ownerInfo['lastName']
 
+        query = "SELECT username,rating FROM likes WHERE photoID = %s"
+        cursor.execute(query, (post['photoID']))
+        result = cursor.fetchall()
+        if (result):
+            post['likers'] = result
+
     cursor.close()
     return render_template('images.html', posts=data)
 
@@ -341,6 +347,52 @@ def createFriendGroup():
     return render_template("createFriendGroup.html")
 
 
+
+
+# CODE FOR ADD FRIEND
+@app.route("/groups")
+@login_required
+def friend_groups():
+    username = session["username"]
+    query = "SELECT DISTINCT owner_username, groupName FROM BelongTo WHERE member_username = %s OR owner_username = %s"
+    with connection.cursor() as cursor:
+        cursor.execute(query, (username, username))
+    data = cursor.fetchall()
+
+    return render_template("groups.html", groups=data)
+
+
+# CODE FOR ADD FRIEND
+@app.route("/addToGroup", methods=["POST"])
+@login_required
+def add_user():
+    username = session["username"]
+    userToAdd = request.form["userToAdd"] # need to check if user exists
+    groups = request.form.getlist("groups[]")
+    # print(groups)
+    userQuery = "SELECT * FROM Person WHERE username = %s"
+    addToQuery = "INSERT INTO BelongTo VALUES (%s, %s, %s)"
+    with connection.cursor() as cursor:
+        cursor.execute(userQuery, userToAdd)
+    data = cursor.fetchone()
+    if (data is None):
+        print("debugging user not found functionality")
+        message = "User could not be added to selected group - Check if user exists"
+        return message
+        #return render_template("groups.html", message=message)
+    else:
+        try:
+            print("trying")
+            with connection.cursor() as cursor:
+                cursor.execute(addToQuery, (userToAdd, username, groups[0]))
+            message = "User successfully added to selected group"
+            return message
+            #return render_template("groups.html", message=message)
+        except:
+            print("except")
+            message = "User could not be added to selected group - Already a member"
+            return message
+            #return render_template("groups.html", message=message)
 
 if __name__ == "__main__":
     if not os.path.isdir("images"):
